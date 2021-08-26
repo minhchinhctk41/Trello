@@ -3,7 +3,6 @@
 $column-header-height: 46px;
 $column-footer-height: 46px;
 $column-border-radius: 5px;
-$card-border-radius: 4px;
 
 .column {
     flex: 0 0 auto;
@@ -34,7 +33,7 @@ $card-border-radius: 4px;
         border-bottom-left-radius: $column-border-radius;
         border-bottom-right-radius: $column-border-radius;
     }
-    ul.task-list {
+    ul.card-list {
         list-style-type: none;
         margin: 0;
         max-height: calc(100% - #{$column-header-height} - #{$column-footer-height});
