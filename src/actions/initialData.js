@@ -6,7 +6,7 @@ export const initialData = {
       columns: [
         {
           id:'column-1',
-          boardID: 'board-1',
+          boardId: 'board-1',
           title: 'To do column',
           cardOrder: ['card-1', 'card-2', 'card-3', 'card-4', 'card-5', 'card-6', 'card-7'],
           cards: [
@@ -21,7 +21,7 @@ export const initialData = {
         },
         {
           id: 'column-2',
-          boardID: 'board-1',
+          boardId: 'board-1',
           title: 'Inprogress column',
           cardOrder: ['card-8', 'card-9', 'card-10'],
           cards: [
@@ -32,7 +32,7 @@ export const initialData = {
         },
         {
           id: 'column-3',
-          boardID: 'board-1',
+          boardId: 'board-1',
           title: 'Done column',
           cardOrder: ['card-11', 'card-12', 'card-13'],
           cards: [
