@@ -106,7 +106,7 @@ function Column(props) {
             <Dropdown.Toggle size="sm" id="dropdown-basic" className="dropdown-btn" />
 
             <Dropdown.Menu>
-              <Dropdown.Item onClick={toggleNewCardForm}>Add card...</Dropdown.Item>
+              <Dropdown.Item onClick={toggleNewCardForm}npm start>Add card...</Dropdown.Item>
               <Dropdown.Item onClick={toggleShowConfirmModal}>Remove column...</Dropdown.Item>
               <Dropdown.Item>Move all cards in this column(beta)...</Dropdown.Item>
               <Dropdown.Item>Archive all cards in this column(beta)...</Dropdown.Item>
@@ -175,7 +175,7 @@ function Column(props) {
         show={showConfirmModal}
         onAction={onComfirmModalAction}
         title="Remove column"
-        content={'Are you sure you want to remove <strong> ${column.title} </strong>.<br/>All related cards will aill also bo remove!'}
+        content={`Are you sure you want to remove <strong> ${column.title} </strong>.<br/>All related cards will aill also bo remove!`}
       />
     </div>
   )
