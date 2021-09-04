@@ -10,10 +10,14 @@ import Card from 'components/Card/Card'
 import ComfirmModal from 'components/Common/ConfirmModal'
 import { mapOrder } from 'utilities/sorts'
 import { MODAL_ACTION_CONFIRM } from 'utilities/constants'
-import { saveContentAfterPressEnter, selectAllInlineText } from 'utilities/contentEditable'
+import {
+  saveContentAfterPressEnter,
+  selectAllInlineText
+} from 'utilities/contentEditable'
+import { createNewCard, updateColumn } from 'actions/apiCall'
 
 function Column(props) {
-  const { column, onCardDrop, onUpdateColumn } = props
+  const { column, onCardDrop, onUpdateColumnState } = props
   const cards = mapOrder(column.cards, column.cardOrder, '_id')
 
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -42,25 +46,34 @@ function Column(props) {
     }
   }, [openNewCardForm])
 
+  // remove column
   const onComfirmModalAction = (type) => {
     if (type === MODAL_ACTION_CONFIRM) {
-      // remove column
-      const newcolumn = {
+      const newColumn = {
         ...column,
         _destroy: true
       }
-      onUpdateColumn(newcolumn)
+      // Call api update column
+      updateColumn(newColumn._id, newColumn).then((updatedColumn) => {
+        onUpdateColumnState(updatedColumn)
+      })
     }
     toggleShowConfirmModal()
   }
 
-
+  // update co;umn title
   const handleColumnTitleBlur = () => {
-    const newcolumn = {
-      ...column,
-      title: columnTitle
+    if (columnTitle !== column.title) {
+      const newColumn = {
+        ...column,
+        title: columnTitle
+      }
+      // Call api update column
+      updateColumn(newColumn._id, newColumn).then((updatedColumn) => {
+        updatedColumn.cards = newColumn.cards
+        onUpdateColumnState(updatedColumn)
+      })
     }
-    onUpdateColumn(newcolumn)
   }
 
   const addNewCard = () => {
@@ -70,27 +83,29 @@ function Column(props) {
     }
 
     const newCardToAdd = {
-      id: Math.random().toString(36).substr(2, 5),
       boardId: column.boardId,
       columnId: column._id,
-      title: newCardTitle.trim(),
-      cover: null
+      title: newCardTitle.trim()
     }
+    // Call Api
+    createNewCard(newCardToAdd).then((card) => {
+      let newColumn = cloneDeep(column)
+      newColumn.cards.push(card)
+      newColumn.cardOrder.push(card._id)
 
-    let newColumn = cloneDeep(column)
-    newColumn.cards.push(newCardToAdd)
-    newColumn.cardOrder.push(newCardToAdd._id)
-
-    onUpdateColumn(newColumn)
-    setNewCardTitle('')
-    toggleNewCardForm()
+      onUpdateColumnState(newColumn)
+      setNewCardTitle('')
+      toggleNewCardForm()
+    })
   }
 
   return (
     <div className="column">
       <header className="column-drag-handle">
         <div className="column-title">
-          <Form.Control size="sm" type="text"
+          <Form.Control
+            size="sm"
+            type="text"
             className="trello-content-edittable"
             value={columnTitle}
             onChange={handleColumnTitleChange}
@@ -98,18 +113,30 @@ function Column(props) {
             onKeyDown={saveContentAfterPressEnter}
             spellCheck="false" //Check
             onClick={selectAllInlineText}
-            onMouseDown={e => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
           />
         </div>
         <div className="column-dropdown-actions">
           <Dropdown>
-            <Dropdown.Toggle size="sm" id="dropdown-basic" className="dropdown-btn" />
+            <Dropdown.Toggle
+              size="sm"
+              id="dropdown-basic"
+              className="dropdown-btn"
+            />
 
             <Dropdown.Menu>
-              <Dropdown.Item onClick={toggleNewCardForm}npm start>Add card...</Dropdown.Item>
-              <Dropdown.Item onClick={toggleShowConfirmModal}>Remove column...</Dropdown.Item>
-              <Dropdown.Item>Move all cards in this column(beta)...</Dropdown.Item>
-              <Dropdown.Item>Archive all cards in this column(beta)...</Dropdown.Item>
+              <Dropdown.Item onClick={toggleNewCardForm} npm start>
+                Add card...
+              </Dropdown.Item>
+              <Dropdown.Item onClick={toggleShowConfirmModal}>
+                Remove column...
+              </Dropdown.Item>
+              <Dropdown.Item>
+                Move all cards in this column(beta)...
+              </Dropdown.Item>
+              <Dropdown.Item>
+                Archive all cards in this column(beta)...
+              </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </div>
@@ -118,8 +145,8 @@ function Column(props) {
         <Container
           orientation="vertical"
           groupName="col"
-          onDrop={dropResult => onCardDrop(column._id, dropResult)}
-          getChildPayload={index => cards[index]}
+          onDrop={(dropResult) => onCardDrop(column._id, dropResult)}
+          getChildPayload={(index) => cards[index]}
           dragClass="card-ghost"
           dropClass="card-ghost-drop"
           dropPlaceholder={{
@@ -136,9 +163,10 @@ function Column(props) {
           ))}
         </Container>
 
-        {openNewCardForm &&
+        {openNewCardForm && (
           <div className="add-new-card-area">
-            <Form.Control size="sm"
+            <Form.Control
+              size="sm"
               as="textarea"
               rows="3"
               placeholder="Enter a title for this card..."
@@ -146,29 +174,28 @@ function Column(props) {
               ref={newCardTextareaRef}
               value={newCardTitle}
               onChange={onNewCardTitleChange}
-              onKeyDown={event => (event.key === 'Enter') && addNewCard()}
+              onKeyDown={(event) => event.key === 'Enter' && addNewCard()}
             />
           </div>
-        }
-
-
+        )}
       </div>
       <footer>
-        {openNewCardForm &&
+        {openNewCardForm && (
           <div className="add-new-card-actions">
-            <Button variant="success" size="sm"
-              onClick={addNewCard}>Add card</Button>
+            <Button variant="success" size="sm" onClick={addNewCard}>
+              Add card
+            </Button>
             <span className="cancel-icon" onClick={toggleNewCardForm}>
               <i className="fa fa-trash icon"></i>
             </span>
           </div>
-        }
-        {!openNewCardForm &&
+        )}
+        {!openNewCardForm && (
           <div className="footer-action" onClick={toggleNewCardForm}>
-            <i className="fa fa-plus icon"/>
+            <i className="fa fa-plus icon" />
             Add another card
           </div>
-        }
+        )}
       </footer>
 
       <ComfirmModal
