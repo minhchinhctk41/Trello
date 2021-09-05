@@ -9,12 +9,18 @@ import {
 } from 'react-bootstrap'
 import './BoardContent.scss'
 
-import { isEmpty } from 'lodash'
+import { isEmpty, cloneDeep } from 'lodash'
 
 import Column from 'components/Column/Column'
 import { mapOrder } from 'utilities/sorts'
 import { applyDrag } from 'utilities/dragDrop'
-import { fetchBoardDetails, createNewColumn } from 'actions/apiCall'
+import {
+  fetchBoardDetails,
+  createNewColumn,
+  updateBoard,
+  updateColumn,
+  updateCard
+} from 'actions/apiCall'
 
 function BoardContent() {
   const [board, setBoard] = useState({})
@@ -51,26 +57,47 @@ function BoardContent() {
   }
 
   const onColumnDrop = (dropResult) => {
-    let newColumns = [...columns]
+    let newColumns = cloneDeep(columns)
     newColumns = applyDrag(newColumns, dropResult)
 
-    let newBoard = { ...board }
+    let newBoard = cloneDeep(board)
     newBoard.columnOrder = newColumns.map((c) => c._id)
     newBoard.columns = newColumns
 
     setColumns(newColumns)
     setBoard(newBoard)
+
+    // Call api update columnOrder in board
+    updateBoard(newBoard._id, newBoard).catch(() => {
+      setColumns(columns)
+      setBoard(board)
+    })
+
   }
 
   const onCardDrop = (columnId, dropResult) => {
     if (dropResult.removedIndex !== null || dropResult.addedIndex !== null) {
-      let newColumns = [...columns]
+      let newColumns = cloneDeep(columns)
 
       let currentColumn = newColumns.find((c) => c._id === columnId)
       currentColumn.cards = applyDrag(currentColumn.cards, dropResult)
       currentColumn.cardOrder = currentColumn.cards.map((i) => i._id)
 
       setColumns(newColumns)
+      if (dropResult.removedIndex !== null && dropResult.addedIndex !== null) {
+        // Action : move card inside one column
+        updateColumn(currentColumn._id, currentColumn).catch(() => setColumns(columns))
+      } else {
+        // Action : move card beetween two column
+        updateColumn(currentColumn._id, currentColumn).catch(() => setColumns(columns))
+
+        if (dropResult.addedIndex !== null) {
+          let currentCard = cloneDeep(dropResult.payload)
+          currentCard.columnId = currentColumn._id
+          // Call api update columnId in current card
+          updateCard(currentCard._id, currentCard)
+        }
+      }
     }
   }
 
